@@ -11,6 +11,7 @@ from mitmproxy.addons import cut
 from mitmproxy.addons import disable_h2c
 from mitmproxy.addons import dns_resolver
 from mitmproxy.addons import export
+from mitmproxy.addons import latency_stats
 from mitmproxy.addons import maplocal
 from mitmproxy.addons import mapremote
 from mitmproxy.addons import modifybody
@@ -46,6 +47,7 @@ def default_addons():
         cut.Cut(),
         disable_h2c.DisableH2C(),
         export.Export(),
+        latency_stats.LatencyStats(),
         onboarding.Onboarding(),
         proxyauth.ProxyAuth(),
         proxyserver.Proxyserver(),
