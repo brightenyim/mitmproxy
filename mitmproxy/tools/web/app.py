@@ -254,7 +254,7 @@ class AuthRequestHandler(tornado.web.RequestHandler):
                     self.auth_fail(bool(password))
                     return None
                 self.set_signed_cookie(
-                    self.settings["auth_cookie_name"],
+                    self.settings["auth_cookie_name"](),
                     self.AUTH_COOKIE_VALUE,
                     expires_days=400,
                     httponly=True,
@@ -266,7 +266,7 @@ class AuthRequestHandler(tornado.web.RequestHandler):
 
     def get_current_user(self) -> bool:
         return (
-            self.get_signed_cookie(self.settings["auth_cookie_name"], min_version=2)
+            self.get_signed_cookie(self.settings["auth_cookie_name"](), min_version=2)
             == self.AUTH_COOKIE_VALUE
         )
 
@@ -304,7 +304,7 @@ class RequestHandler(AuthRequestHandler):
         try:
             return json.loads(self.request.body.decode())
         except Exception as e:
-            raise APIError(400, f"Malformed JSON: {str(e)}")
+            raise APIError(400, f"Malformed JSON: {e}")
 
     @property
     def filecontents(self):
@@ -671,7 +671,7 @@ class FlowContent(RequestHandler):
             filename = self.flow.request.path.split("?")[0].split("/")[-1]
 
         filename = re.sub(r'[^-\w" .()]', "", filename)
-        cd = f"attachment; filename={filename}"
+        cd = f"attachment; {filename=!s}"
         self.set_header("Content-Disposition", cd)
         self.set_header("Content-Type", "application/text")
         self.set_header("X-Content-Type-Options", "nosniff")
@@ -924,5 +924,5 @@ class Application(tornado.web.Application):
             autoreload=False,
             transforms=[GZipContentAndFlowFiles],
             is_valid_password=auth_addon.is_valid_password,
-            auth_cookie_name=f"mitmproxy-auth-{master.options.web_port}",
+            auth_cookie_name=auth_addon.auth_cookie_name,
         )

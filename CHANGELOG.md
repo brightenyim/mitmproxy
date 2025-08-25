@@ -7,12 +7,35 @@
 
 ## Unreleased: mitmproxy next
 
+
+## 24 August 2025: mitmproxy 12.1.2
+
+- Docker images are now build with Debian Trixie.
+  ([#7851](https://github.com/mitmproxy/mitmproxy/pull/7851), @mhils)
+- Fix mitmweb auth cookie always using the default `web_port` option.
+  ([#7827](https://github.com/mitmproxy/mitmproxy/pull/7827), @sujaldev)
+- fix: missing content-length header in curl export
+  ([#7810](https://github.com/mitmproxy/mitmproxy/pull/7810), @mheguy)
+- fix: update log message with correct header name
+  ([#7802](https://github.com/mitmproxy/mitmproxy/pull/7802), @kristof-mattei)
+- Update deprecated `windows-2019` runner to `windows-2025`.
+  ([#7801](https://github.com/mitmproxy/mitmproxy/pull/7801), @chedieck)
 - Do not escape non-ascii characters in the JSON contentview.
   ([#7740](https://github.com/mitmproxy/mitmproxy/pull/7740), @mhils)
 - Fix crash in mitmweb when no explicit Server-Connection is logged.
   ([#7734](https://github.com/mitmproxy/mitmproxy/pull/7734), @lups2000)
 - Add syntax highlighting for CSS and JavaScript contentviews.
   ([#7749](https://github.com/mitmproxy/mitmproxy/pull/7749), @mhils)
+- Display local timezone in the Timing tab of mitmweb.
+  ([#7804](https://github.com/mitmproxy/mitmproxy/pull/7804), @lups2000)
+- Prevent showing the quit message in the console when no flows are available under specific configurations.
+  ([#7833](https://github.com/mitmproxy/mitmproxy/pull/7833), @lups2000)
+
+### Security Fixes
+
+* [GHSA-847f-9342-265h](https://github.com/python-hyper/h2/security/advisories/GHSA-847f-9342-265h):
+  Upgrade hyper-h2 to fix a request smuggling vulnerability that affects mitmproxy's
+  HTTP/2 -> HTTP/1 translation. (@mhils)
 
 ## 25 May 2025: mitmproxy 12.1.1
 

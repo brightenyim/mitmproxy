@@ -37,7 +37,7 @@ class WebAuth:
             "everything else is considered a plaintext password. "
             "If no password is provided, a random token is generated on startup."
             "For automated calls, you can pass the password as token query parameter"
-            "or as `Authentication: Bearer ...` header.",
+            "or as `Authorization: Bearer ...` header.",
         )
 
     def configure(self, updated) -> None:
@@ -64,6 +64,10 @@ class WebAuth:
             auth = f"?token={self._password}"
         # noinspection HttpUrlsUsage
         return f"http://{ctx.options.web_host}:{ctx.options.web_port}/{auth}"
+
+    @staticmethod
+    def auth_cookie_name() -> str:
+        return f"mitmproxy-auth-{ctx.options.web_port}"
 
     def is_valid_password(self, password: str) -> bool:
         if self._password.startswith("$"):

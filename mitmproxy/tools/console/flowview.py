@@ -104,7 +104,12 @@ class FlowDetails(tabs.Tabs):
                 ]
             self.show()
         else:
-            self.master.window.pop()
+            # Get the top window from the focus stack (the currently active view).
+            # If it's NOT the "flowlist", it's safe to pop back to the previous view.
+            if self.master.window.focus_stack().stack[-1] != "flowlist":
+                self.master.window.pop()
+            # If it is the "flowlist", we’re already at the main view with no flows to show.
+            # Popping now would close the last window and prompt app exit, so we remain on the empty flow list screen instead.
 
     def tab_http_request(self):
         flow = self.flow
@@ -436,7 +441,7 @@ class FlowDetails(tabs.Tabs):
 
             def rr_text(rr: dns.ResourceRecord):
                 return urwid.Text(
-                    f"  {rr.name} {dns.types.to_str(rr.type)} {dns.classes.to_str(rr.class_)} {rr.ttl} {str(rr)}"
+                    f"  {rr.name} {dns.types.to_str(rr.type)} {dns.classes.to_str(rr.class_)} {rr.ttl} {rr}"
                 )
 
             txt = []
