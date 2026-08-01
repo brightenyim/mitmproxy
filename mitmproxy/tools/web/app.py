@@ -5,6 +5,7 @@ import functools
 import hashlib
 import json
 import logging
+import mimetypes
 import os.path
 import re
 import secrets
@@ -13,9 +14,11 @@ from collections.abc import Callable
 from collections.abc import Sequence
 from io import BytesIO
 from typing import Any
+from typing import Awaitable
 from typing import ClassVar
 from typing import Concatenate
 from typing import Literal
+from typing import Optional
 
 import tornado.escape
 import tornado.web
@@ -35,7 +38,6 @@ from mitmproxy import optmanager
 from mitmproxy import version
 from mitmproxy.dns import DNSFlow
 from mitmproxy.http import HTTPFlow
-from mitmproxy.net.http import status_codes
 from mitmproxy.tcp import TCPFlow
 from mitmproxy.tcp import TCPMessage
 from mitmproxy.tools.web.webaddons import WebAuth
@@ -46,6 +48,11 @@ from mitmproxy.utils.emoji import emoji
 from mitmproxy.utils.strutils import always_str
 from mitmproxy.utils.strutils import cut_after_n_lines
 from mitmproxy.websocket import WebSocketMessage
+
+# Fix for Windows systems where .js files may have text/plain MIME type in registry.
+# Modern browsers with ES6 module scripts require proper JavaScript MIME types.
+# See: https://github.com/mitmproxy/mitmproxy/issues/7971
+mimetypes.add_type("text/javascript", ".js")
 
 TRANSPARENT_PNG = (
     b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08"
@@ -274,6 +281,14 @@ class AuthRequestHandler(tornado.web.RequestHandler):
 class RequestHandler(AuthRequestHandler):
     application: Application
 
+    def prepare(self):
+        if (
+            self.request.method not in ("GET", "HEAD", "OPTIONS")
+            and "Sec-Fetch-Site" in self.request.headers
+            and self.request.headers["Sec-Fetch-Site"] not in ("same-origin", "none")
+        ):
+            raise tornado.httpclient.HTTPError(403)
+
     def write(self, chunk: str | bytes | dict | list):
         # Writing arrays on the top level is ok nowadays.
         # http://flask.pocoo.org/docs/0.11/security/#json-security
@@ -292,6 +307,7 @@ class RequestHandler(AuthRequestHandler):
             "Content-Security-Policy",
             "default-src 'self'; "
             "connect-src 'self' ws:; "
+            "img-src 'self' data:; "
             "style-src   'self' 'unsafe-inline'",
         )
 
@@ -343,25 +359,11 @@ class RequestHandler(AuthRequestHandler):
 
 
 class IndexHandler(RequestHandler):
-    def _is_fetch_mode_navigate(self) -> bool:
-        # Forbid access for non-navigate fetch modes so that they can't obtain xsrf_token.
-        return self.request.headers.get("Sec-Fetch-Mode", "navigate") == "navigate"
-
     def auth_fail(self, invalid_password: bool) -> None:
-        # For mitmweb, we only write a login form for IndexHandler,
-        # which has additional Sec-Fetch-Mode protections.
-        if self._is_fetch_mode_navigate():
-            self.render("login.html", invalid_password=invalid_password)
+        self.render("login.html", invalid_password=invalid_password)
 
     def get(self):
-        # Forbid access for non-navigate fetch modes so that they can't obtain xsrf_token.
-        if self._is_fetch_mode_navigate():
-            self.render("index.html", xsrf_token=self.xsrf_token)
-        else:
-            raise APIError(
-                status_codes.PRECONDITION_FAILED,
-                f"Unexpected Sec-Fetch-Mode header: {self.request.headers.get('Sec-Fetch-Mode')}",
-            )
+        self.render("../index.html")
 
     post = get  # login form
 
@@ -377,6 +379,11 @@ class WebSocketEventBroadcaster(tornado.websocket.WebSocketHandler, AuthRequestH
 
     _send_queue: asyncio.Queue[bytes]
     _send_task: asyncio.Task[None]
+
+    def prepare(self) -> Optional[Awaitable[None]]:
+        token = self.xsrf_token  # https://github.com/tornadoweb/tornado/issues/645
+        assert token
+        return None
 
     def open(self, *args, **kwargs):
         self.connections.add(self)
@@ -918,11 +925,15 @@ class Application(tornado.web.Application):
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
             static_path=os.path.join(os.path.dirname(__file__), "static"),
             xsrf_cookies=True,
-            xsrf_cookie_kwargs=dict(httponly=True, samesite="Strict"),
+            # https://github.com/mitmproxy/mitmproxy/issues/8194
+            # 2026-05: We can move back to the default cookie name in a few years.
+            xsrf_cookie_name="_mitmproxy_xsrf",
+            xsrf_cookie_kwargs=dict(samesite="Strict"),
             cookie_secret=secrets.token_bytes(32),
             debug=debug,
             autoreload=False,
             transforms=[GZipContentAndFlowFiles],
             is_valid_password=auth_addon.is_valid_password,
             auth_cookie_name=auth_addon.auth_cookie_name,
+            compiled_template_cache=False,  # Vite
         )

@@ -1,25 +1,27 @@
 import React, { useCallback } from "react";
 import classnames from "classnames";
-import { Flow } from "../../flow";
-import { useAppDispatch, useAppSelector } from "../../ducks";
+import type { Flow } from "../../flow";
+import { useAppDispatch } from "../../ducks";
 import { select, selectRange, selectToggle } from "../../ducks/flows";
+import { isValidColumnName } from "../../flow/utils";
 import * as columns from "./FlowColumns";
 
 type FlowRowProps = {
     flow: Flow;
     selected: boolean;
     highlighted: boolean;
+    displayColumnNames: string[];
+    rowNumber: number;
 };
 
 export default React.memo(function FlowRow({
     flow,
     selected,
     highlighted,
+    displayColumnNames,
+    rowNumber,
 }: FlowRowProps) {
     const dispatch = useAppDispatch();
-    const displayColumnNames = useAppSelector(
-        (state) => state.options.web_columns,
-    );
     const className = classnames({
         selected,
         highlighted,
@@ -49,14 +51,14 @@ export default React.memo(function FlowRow({
     );
 
     const displayColumns = displayColumnNames
+        .filter(isValidColumnName)
         .map((x) => columns[x])
-        .filter((x) => x)
         .concat(columns.quickactions);
 
     return (
         <tr className={className} onClick={onClick}>
             {displayColumns.map((Column) => (
-                <Column key={Column.name} flow={flow} />
+                <Column key={Column.name} flow={flow} rowNumber={rowNumber} />
             ))}
         </tr>
     );

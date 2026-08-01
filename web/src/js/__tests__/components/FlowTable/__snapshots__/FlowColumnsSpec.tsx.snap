@@ -236,11 +236,31 @@ exports[`Flowcolumns Components should render pathColumn 1`] = `
         <td
           class="col-path"
         >
-          <i
-            class="fa fa-fw fa-exclamation pull-right"
-          />
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-triangle-alert icon icon-warning float-right"
+            fill="none"
+            height="16"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="16"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"
+            />
+            <path
+              d="M12 9v4"
+            />
+            <path
+              d="M12 17h.01"
+            />
+          </svg>
           <span
-            class="marker pull-right"
+            class="marker float-right"
           />
           http://address:22/path
         </td>
@@ -258,14 +278,56 @@ exports[`Flowcolumns Components should render pathColumn 2`] = `
         <td
           class="col-path"
         >
-          <i
-            class="fa fa-fw fa-pause pull-right"
-          />
-          <i
-            class="fa fa-fw fa-times pull-right"
-          />
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-pause icon icon-pause float-right"
+            fill="none"
+            height="16"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="16"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect
+              height="18"
+              rx="1"
+              width="5"
+              x="14"
+              y="3"
+            />
+            <rect
+              height="18"
+              rx="1"
+              width="5"
+              x="5"
+              y="3"
+            />
+          </svg>
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-x icon icon-close float-right"
+            fill="none"
+            height="16"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="16"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M18 6 6 18"
+            />
+            <path
+              d="m6 6 12 12"
+            />
+          </svg>
           <span
-            class="marker pull-right"
+            class="marker float-right"
           />
           http://address:22/path
         </td>
@@ -349,11 +411,31 @@ exports[`should render columns: path 1`] = `
         <td
           class="col-path"
         >
-          <i
-            class="fa fa-fw fa-exclamation pull-right"
-          />
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-triangle-alert icon icon-warning float-right"
+            fill="none"
+            height="16"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="16"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"
+            />
+            <path
+              d="M12 9v4"
+            />
+            <path
+              d="M12 17h.01"
+            />
+          </svg>
           <span
-            class="marker pull-right"
+            class="marker float-right"
           />
           http://address:22/path
         </td>
@@ -400,7 +482,6 @@ exports[`should render columns: status 1`] = `
       <tr>
         <td
           class="col-status"
-          style="color: darkgreen;"
         >
           200
         </td>

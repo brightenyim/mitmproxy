@@ -145,16 +145,25 @@ def identity(content):
 
 
 def decode_gzip(content: bytes) -> bytes:
+    """Decode gzip or zlib-compressed data using zlib's auto-detection."""
     if not content:
         return b""
-    with gzip.GzipFile(fileobj=BytesIO(content)) as f:
-        return f.read()
+
+    try:
+        # Using wbits=47 (32 + 15) tells zlib to automatically detect both gzip and zlib headers.
+        # This simplifies decoding and avoids the need for a separate gzip.GzipFile fallback.
+        # Reference: https://docs.python.org/3/library/zlib.html#zlib.decompress
+        decompressor = zlib.decompressobj(47)
+        return decompressor.decompress(content) + decompressor.flush()
+    except zlib.error as e:
+        raise ValueError(f"Decompression failed: {e}")
 
 
 def encode_gzip(content: bytes) -> bytes:
     s = BytesIO()
     # set mtime to 0 so that gzip encoding is deterministic.
-    with gzip.GzipFile(fileobj=s, mode="wb", mtime=0) as f:
+    # Use compresslevel=1 for fastest compression speed.
+    with gzip.GzipFile(fileobj=s, mode="wb", mtime=0, compresslevel=1) as f:
         f.write(content)
     return s.getvalue()
 
@@ -166,7 +175,8 @@ def decode_brotli(content: bytes) -> bytes:
 
 
 def encode_brotli(content: bytes) -> bytes:
-    return brotli.compress(content)
+    # Use quality=0 for fastest compression speed.
+    return brotli.compress(content, quality=0)
 
 
 def decode_zstd(content: bytes) -> bytes:
@@ -177,7 +187,8 @@ def decode_zstd(content: bytes) -> bytes:
 
 
 def encode_zstd(content: bytes) -> bytes:
-    zstd_ctx = zstd.ZstdCompressor()
+    # Use level=1 for fastest compression speed.
+    zstd_ctx = zstd.ZstdCompressor(level=1)
     return zstd_ctx.compress(content)
 
 
@@ -202,7 +213,8 @@ def encode_deflate(content: bytes) -> bytes:
     """
     Returns compressed content, always including zlib header and checksum.
     """
-    return zlib.compress(content)
+    # Use level=1 for fastest compression speed.
+    return zlib.compress(content, level=1)
 
 
 custom_decode = {
